@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>TaskFlow</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    display: flex;
+    justify-content: center;
+    padding: 60px 20px;
+    margin: 0;
+  }
+  .card {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 32px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+  h1 { margin-top: 0; font-size: 1.6rem; }
+  .row { display: flex; gap: 8px; margin-bottom: 20px; }
+  input[type=text] {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #e2e8f0;
+  }
+  button {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    background: #3b82f6;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  button:hover { background: #2563eb; }
+  ul { list-style: none; padding: 0; margin: 0; }
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #334155;
+  }
+  li span { flex: 1; }
+  li.done span { text-decoration: line-through; color: #64748b; }
+  .del { background: transparent; color: #f87171; font-size: 1.1rem; padding: 2px 8px; }
+  .del:hover { background: #334155; }
+  #status { font-size: 0.85rem; color: #64748b; margin-top: 16px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>📋 TaskFlow</h1>
+    <div class="row">
+      <input type="text" id="taskInput" placeholder="Add a new task..." />
+      <button id="addBtn">Add</button>
+    </div>
+    <ul id="taskList"></ul>
+    <div id="status">Loading...</div>
+  </div>
+
+  <script>
+    // The backend URL is intentionally left as a relative path.
+    // In K8s this will be reached through the backend Service name
+    // (e.g. via an Ingress rule or a reverse-proxy config on this
+    // container) rather than hardcoded here.
+    const API_BASE = window.API_BASE_URL || '/api';
+
+    const taskList = document.getElementById('taskList');
+    const taskInput = document.getElementById('taskInput');
+    const addBtn = document.getElementById('addBtn');
+    const status = document.getElementById('status');
+
+    async function fetchTasks() {
+      status.textContent = 'Loading...';
+      try {
+        const res = await fetch(`${API_BASE}/tasks`);
+        const tasks = await res.json();
+        renderTasks(tasks);
+        status.textContent = `${tasks.length} task(s)`;
+      } catch (err) {
+        status.textContent = 'Could not reach backend API.';
+      }
+    }
+
+    function renderTasks(tasks) {
+      taskList.innerHTML = '';
+      tasks.forEach((task) => {
+        const li = document.createElement('li');
+        if (task.done) li.classList.add('done');
+
+        const span = document.createElement('span');
+        span.textContent = task.title;
+        span.onclick = () => toggleTask(task);
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '✕';
+        delBtn.className = 'del';
+        delBtn.onclick = () => deleteTask(task.id);
+
+        li.appendChild(span);
+        li.appendChild(delBtn);
+        taskList.appendChild(li);
+      });
+    }
+
+    async function addTask() {
+      const title = taskInput.value.trim();
+      if (!title) return;
+      await fetch(`${API_BASE}/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title }),
+      });
+      taskInput.value = '';
+      fetchTasks();
+    }
+
+    async function toggleTask(task) {
+      await fetch(`${API_BASE}/tasks/${task.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ done: !task.done }),
+      });
+      fetchTasks();
+    }
+
+    async function deleteTask(id) {
+      await fetch(`${API_BASE}/tasks/${id}`, { method: 'DELETE' });
+      fetchTasks();
+    }
+
+    addBtn.onclick = addTask;
+    taskInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addTask();
+    });
+
+    fetchTasks();
+  </script>
+</body>
+</html>
