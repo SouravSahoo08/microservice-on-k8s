@@ -20,6 +20,15 @@ spec:
         image: souravsahoo08/microservice-k8-backend:v1.0
         ports:
         - containerPort: 3000
+      envfrom:
+      - configmapRef:
+          name: taskflow-configmap
+      env:
+      - name: DB_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: taskflow-secret
+            key: DB_PASSWORD
 
 ---
 

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: game-demo
+  namespace: taskflow
+data:
+  # DB_HOST will be populated after creating the RDS instance, while using EKS,
+  # to reduce cost incured during testing.
+  DB_HOST: ""
+  DB_PORT: "5432"
+  DB_NAME: "taskflow"
+  DB_USER: "admin"
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: taskflow-secret
+  namespace: taskflow
+type: Opaque
+stringData:
+  # Password for the database is left empty (deliberately for testing) which will be populated while using EKS.
+  # In real deployment, AWS secrets manager is to be used.
+  DB_PASSWORD: "" 
