@@ -18,6 +18,7 @@ spec:
       containers:
       - name: taskflow-be
         image: souravsahoo08/microservice-k8-backend:v1.0
+        imagePullPolicy: Always
         ports:
         - containerPort: 3000
       envfrom:
@@ -35,10 +36,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: taskflow-fe-service
+  name: taskflow-be-service
 spec:
   selector:
-    app: taskflow-fe
+    app: taskflow-be
   ports:
     - protocol: TCP
       port: 3000

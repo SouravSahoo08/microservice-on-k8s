@@ -17,7 +17,8 @@ spec:
     spec:
       containers:
       - name: taskflow-fe
-        image: souravsahoo08/microservice-k8-frontend:v1.0
+        image: souravsahoo08/microservice-k8-frontend:v1.1
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
 
