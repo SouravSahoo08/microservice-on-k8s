@@ -1,0 +1,25 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+	name: taskflow-cluster
+	region: us-east-1
+
+vpc:
+	id: vpc-
+	subnets:
+		public:
+			us-east-1a:
+				id: subnet-
+			us-east-1b:
+				id: subnet-
+
+managedNodeGroups:
+	- name: public-workers
+		instanceType: t2.medium
+		minSize: 2
+		desiredCapacity: 2
+		maxSize: 2
+		subnets:
+			- subnet-
+			- subnet-
